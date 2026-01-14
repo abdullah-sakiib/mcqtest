@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student MCQ Test</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Segoe UI, Tahoma;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 700px;
+        width: 100%;
+        padding: 40px;
+      }
+      h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 25px;
+        font-size: 14px;
+      }
+      .input-group {
+        margin-bottom: 18px;
+      }
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      input {
+        width: 100%;
+        padding: 12px 15px;
+        border-radius: 10px;
+        border: 2px solid #ddd;
+        font-size: 16px;
+      }
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      button {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #667eea;
+        color: white;
+      }
+      button:hover {
+        background: #5568d3;
+      }
+      button:disabled {
+        background: #ccc;
+      }
+      .btn-secondary {
+        background: #6c757d;
+        margin-top: 10px;
+      }
+      .screen {
+        display: none;
+      }
+      .screen.active {
+        display: block;
+        animation: fade 0.4s;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+      }
+      .timer {
+        font-family: monospace;
+        font-weight: 600;
+      }
+      .question {
+        font-size: 20px;
+        margin-bottom: 20px;
+      }
+      .option {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+      }
+      .option.selected {
+        background: #e8eaff;
+        border-color: #667eea;
+        font-weight: 600;
+      }
+      .option-radio {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid #aaa;
+        margin-right: 10px;
+      }
+      .option.selected .option-radio {
+        border-color: #667eea;
+        background: #667eea;
+      }
+      .admin-link {
+        text-align: center;
+        margin-top: 15px;
+      }
+      .admin-link a {
+        font-size: 12px;
+        color: #999;
+        text-decoration: none;
+      }
+      .config-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 20px;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        font-family: monospace;
+        padding: 10px;
+      }
+      .error {
+        background: #fee;
+        color: #c33;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>📝 Class Test</h1>
+      <p class="subtitle" id="subtitle">Enter details to begin</p>
+
+      <!-- WELCOME -->
+      <div id="welcomeScreen" class="screen active">
+        <div class="input-group">
+          <label>Full Name</label>
+          <input id="studentName" />
+        </div>
+        <div id="errorMsg" class="error" style="display: none"></div>
+        <button onclick="startTest()">Start Test</button>
+
+        <div class="admin-link">
+          <a href="#" onclick="toggleAdmin();return false;">Admin Panel</a>
+        </div>
+
+<div id="adminPanel" class="config-section" style="display:none">
+<h3>Admin Configuration</h3>
+
+<label>Questions JSON</label>
+<textarea id="questionsJson"></textarea>
+
+<button onclick="saveQuestions()">Save Questions</button>
+<button onclick="clearData()" class="btn-secondary">Clear Attempts</button>
+</div>
+
+      </div>
+      <!-- End Welcome Screen -->
+
+      <!-- QUIZ -->
+      <div id="quizScreen" class="screen">
+        <div class="quiz-header">
+          <span id="questionCounter"></span>
+          <span class="timer" id="timer">00:00</span>
+        </div>
+        <div id="questionText" class="question"></div>
+        <div id="optionsContainer"></div>
+        <button id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+        <button onclick="prevQuestion()" class="btn-secondary">Previous</button>
+      </div>
+
+      <!-- RESULT -->
+      <div id="resultScreen" class="screen">
+        <h2 style="text-align: center">Test Completed</h2>
+        <p style="text-align: center">
+          Score:
+          <strong
+            ><span id="scoreDisplay"></span>/<span id="totalDisplay"></span
+          ></strong>
+        </p>
+        <p style="text-align: center">Time: <span id="timeTaken"></span></p>
+        <button onclick="location.reload()">Back to Home</button>
+      </div>
+    </div>
+
+    <script>
+      /* ================= CONFIG ================= */
+      const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycby4Y6QL7rICZES4hKmq1-jArhe1so2o5jTbdCFFWMLT6XuAlZTmYeDyM6ISTG3H5HTO/exec';
+
+
+
+      let QUESTIONS = [
+  { "id": 1,
+        "question": "3/2, 5/3, 7/4, ... অনুক্রমটির r-তম পদ কত?",
+        "options": {
+          "ক": "(2r-1)/r",
+          "খ": "(r+1)/(2r+1)",
+          "গ": "(2r-1)/(2r-1)",
+          "ঘ": "r/(r-1)"
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 2,
+        "question": "নিচের কোন অনুক্রমের সাধারণ পদ 1/(n²+1)?",
+        "options": {
+          "ক": "1/2, 1/5, 1/10, ...",
+          "খ": "1/2, 1/4, 1/9, ...",
+          "গ": "1/3, 1/6, 1/11, ...",
+          "ঘ": "1/4, 1/9, 1/16, ..."
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 3,
+        "question": "cos(nπ/2) অনুক্রমটির প্রথম চারটি পদ কোনটি?",
+        "options": {
+          "ক": "0, −1, 0, 1",
+          "খ": "1, 0, −1, 0",
+          "গ": "0, 1, 0, −1",
+          "ঘ": "0, 1, −1, 0"
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 4,
+        "question": "3, 1, −1, −3, ... অনুক্রমের পঞ্চম পদ কত?",
+        "options": {
+          "ক": "−1",
+          "খ": "−3",
+          "গ": "−5",
+          "ঘ": "−7"
+        },
+        "answer": "গ"
+      },
+      {
+        "id": 5,
+        "question": "1/2, −2/3, 3/4, −4/5, ... অনুক্রমটির সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "(-n)^(n+1)",
+          "খ": "(-1)^(n+1) · n/(n+1)",
+          "গ": "-(-1)^n · n/(n+1)",
+          "ঘ": "(-1)^n · n/(n+1)"
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 6,
+        "question": "4, 6, 8, 10, 12, 14, ... অনুক্রমটির পদগুলোর যোগফল কিরূপ ধারা?",
+        "options": {
+          "ক": "সমান্তর",
+          "খ": "অনন্ত",
+          "গ": "গুণোত্তর",
+          "ঘ": "আনুপাতিক"
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 7,
+        "question": "সাধারণ পদ (2n−1)/π হলে অনুক্রম কোনটি?",
+        "options": {
+          "ক": "π, 2π, 3π, ...",
+          "খ": "π, 3π, 5π, ...",
+          "গ": "2π, 3π, 4π, ...",
+          "ঘ": "2π, 4π, 6π, ..."
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 8,
+        "question": "π/1, π/4, 3π/9, 4π/16, ... অনুক্রমটির সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "nπ/n",
+          "খ": "nπ/n²",
+          "গ": "n²π/n",
+          "ঘ": "(n+1)²π/n"
+        },
+        "answer": "গ"
+      },
+      {
+        "id": 9,
+        "question": "3, 5, 7, 9, ... অনুক্রম সম্পর্কে কোনটি সঠিক?",
+        "options": {
+          "ক": "i ও ii",
+          "খ": "i ও iii",
+          "গ": "ii ও iii",
+          "ঘ": "i, ii ও iii"
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 10,
+        "question": "1/2, 1/7, 1/12, 1/17, ... অনুক্রমটির সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "1/(3n−5)",
+          "খ": "1/(5n−3)",
+          "গ": "1/(3n+2)",
+          "ঘ": "1/(5n−3)"
+        },
+        "answer": "ঘ"
+      },
+      {
+        "id": 11,
+        "question": "20, 17, 14, 11, ... একটি অনুক্রম। সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "20−3n",
+          "খ": "23−3n",
+          "গ": "20+3n",
+          "ঘ": "23+3n"
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 12,
+        "question": "4, 4/3, 4/9, ... অনুক্রমটির সাধারণ অনুপাত কত?",
+        "options": {
+          "ক": "1/3",
+          "খ": "3",
+          "গ": "4",
+          "ঘ": "1/4"
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 13,
+        "question": "cos(π/2), cos(π), cos(3π/2), cos(2π), ... অনুক্রমটির সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "cos(nπ/2)",
+          "খ": "cos((nπ+1)/2)",
+          "গ": "cos(π/2n)",
+          "ঘ": "cos((n+1)π/2)"
+        },
+        "answer": "ক"
+      },
+      {
+        "id": 14,
+        "question": "উপরের অনুক্রমটির 22তম পদ কত?",
+        "options": {
+          "ক": "0",
+          "খ": "1",
+          "গ": "−1",
+          "ঘ": "−2"
+        },
+        "answer": "গ"
+      },
+      {
+        "id": 15,
+        "question": "2, 6, 18, 54, ... অনুক্রমটির 8ম পদ কত?",
+        "options": {
+          "ক": "27996",
+          "খ": "1478",
+          "গ": "4374",
+          "ঘ": "13122"
+        },
+        "answer": "গ"
+      },
+      {
+        "id": 16,
+        "question": "নিচের কোনটি ধারা?",
+        "options": {
+          "ক": "1,2,3,...",
+          "খ": "1/2,1/4,1/8,...",
+          "গ": "1/3,1/9,1/27,...",
+          "ঘ": "1/2+1/3+1/4+..."
+        },
+        "answer": "ঘ"
+      },
+      {
+        "id": 17,
+        "question": "1²+1+2²+2+...+10 ধারাটির 14তম পদ কত?",
+        "options": {
+          "ক": "2",
+          "খ": "7/2",
+          "গ": "5",
+          "ঘ": "7"
+        },
+        "answer": "ঘ"
+      },
+      {
+        "id": 18,
+        "question": "1+2+3+...+10 ধারাটির সমষ্টি কত?",
+        "options": {
+          "ক": "50",
+          "খ": "55",
+          "গ": "60",
+          "ঘ": "65"
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 19,
+        "question": "সাধারণ পদ (1/3)^n হলে কোনটি সঠিক?",
+        "options": {
+          "ক": "i ও ii",
+          "খ": "i ও iii",
+          "গ": "ii ও iii",
+          "ঘ": "i, ii ও iii"
+        },
+        "answer": "খ"
+      },
+      {
+        "id": 20,
+        "question": "2, 0, 2, 0, ... অনুক্রমটির সাধারণ পদ কোনটি?",
+        "options": {
+          "ক": "1+(-1)^n",
+          "খ": "1-(-1)^n",
+          "গ": "-1-(-1)^n",
+          "ঘ": "(-1)^n-2(-1)^n"
+        },
+        "answer": "খ"
+      }
+    ];
+
+      /* ================= STATE ================= */
+      let currentQuestion = 0;
+      let answers = [];
+      let startTime;
+      let timerInt;
+      let completedStudents = {};
+      let studentIP;
+
+      /* ================= UTILS ================= */
+      async function sha256(t) {
+        const b = new TextEncoder().encode(t);
+        const h = await crypto.subtle.digest("SHA-256", b);
+        return Array.from(new Uint8Array(h))
+          .map((x) => x.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      async function getIP() {
+        try {
+          const r = await fetch("https://api.ipify.org?format=json");
+          return (await r.json()).ip;
+        } catch {
+          return "UNKNOWN";
+        }
+      }
+
+      /* ================= ADMIN ================= */
+function toggleAdmin(){
+  const panel = document.getElementById("adminPanel");
+
+  if(panel.style.display !== "block"){
+    const pass = prompt("Admin password:");
+    if(pass !== "SAKIB"){
+      alert("Wrong password");
+      return;
+    }
+  }
+
+  panel.style.display =
+    panel.style.display === "block" ? "none" : "block";
+
+  questionsJson.value = JSON.stringify(QUESTIONS, null, 2);
+}
+
+
+      function saveQuestions() {
+        QUESTIONS = JSON.parse(document.getElementById("questionsJson").value);
+        localStorage.setItem("quiz_questions", JSON.stringify(QUESTIONS));
+        alert("Saved");
+      }
+
+      function clearData() {
+        localStorage.removeItem("completed_students");
+        completedStudents = {};
+        alert("Cleared");
+      }
+
+function sendToGoogleSheet(data){
+  if(!GOOGLE_SHEET_URL) return;
+
+  fetch(GOOGLE_SHEET_URL,{
+    method:"POST",
+    mode:"no-cors",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(data)
+  }).catch(()=>{});
+}
+
+
+      /* ================= TEST ================= */
+      async function startTest() {
+        const name = studentName.value.trim();
+        if (!name) {
+          errorMsg.textContent = "Please enter your name";
+          errorMsg.style.display = "block";
+          return;
+        }
+        studentIP = await getIP();
+        if (completedStudents[studentIP]) {
+          errorMsg.textContent = "You already took the exam";
+          errorMsg.style.display = "block";
+          return;
+        }
+        errorMsg.style.display = "none";
+        startTime = Date.now();
+        show("quizScreen");
+        startTimer();
+        loadQuestion();
+      }
+
+      function startTimer() {
+        let s = 0;
+        timerInt = setInterval(() => {
+          s++;
+          timer.textContent =
+            String(Math.floor(s / 60)).padStart(2, "0") +
+            ":" +
+            String(s % 60).padStart(2, "0");
+        }, 1000);
+      }
+
+      function loadQuestion() {
+        const q = QUESTIONS[currentQuestion];
+        questionText.textContent = q.question;
+        questionCounter.textContent = `Question ${currentQuestion + 1}/${
+          QUESTIONS.length
+        }`;
+        optionsContainer.innerHTML = "";
+        Object.entries(q.options).forEach(([key, value], i) => {
+          const d = document.createElement("div");
+          d.className = "option";
+          if (answers[currentQuestion] === key) d.classList.add("selected");
+          d.innerHTML = `<div class="option-radio"></div><strong>${key}:</strong> ${value}`;
+          d.onclick = () => selectOption(key);
+          optionsContainer.appendChild(d);
+        });
+        nextBtn.disabled = answers[currentQuestion] == null;
+        nextBtn.textContent =
+          currentQuestion === QUESTIONS.length - 1 ? "Finish" : "Next";
+      }
+
+      function selectOption(key) {
+        answers[currentQuestion] = key;
+        document
+          .querySelectorAll(".option")
+          .forEach((o) => o.classList.remove("selected"));
+        event.currentTarget.classList.add("selected");
+        nextBtn.disabled = false;
+      }
+
+      function nextQuestion() {
+        currentQuestion++;
+        currentQuestion < QUESTIONS.length ? loadQuestion() : finish();
+      }
+
+      function prevQuestion() {
+        if (currentQuestion > 0) {
+          currentQuestion--;
+          loadQuestion();
+        }
+      }
+
+      function finish() {
+        clearInterval(timerInt);
+        const score = answers.reduce(
+          (s, a, i) => (a === QUESTIONS[i].answer ? s + 1 : s),
+          0
+        );
+        const time = Math.floor((Date.now() - startTime) / 1000);
+        completedStudents[studentIP] = true;
+        localStorage.setItem(
+          "completed_students",
+          JSON.stringify(completedStudents)
+        );
+        scoreDisplay.textContent = score;
+        totalDisplay.textContent = QUESTIONS.length;
+        timeTaken.textContent = `${Math.floor(time / 60)}:${String(
+          time % 60
+        ).padStart(2, "0")}`;
+        sendToGoogleSheet({
+  name: studentName.value,
+  score,
+  total: QUESTIONS.length,
+  ip: studentIP,
+  time: timeTaken.textContent,
+  date: new Date().toLocaleString()
+});
+
+        show("resultScreen");
+      }
+
+      function show(id) {
+        document
+          .querySelectorAll(".screen")
+          .forEach((s) => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+
+      /* ================= INIT ================= */
+      const q = localStorage.getItem("quiz_questions");
+      if (q) QUESTIONS = JSON.parse(q);
+      const c = localStorage.getItem("completed_students");
+      if (c) completedStudents = JSON.parse(c);
+
+    </script>
+  </body>
+</html>
